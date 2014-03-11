@@ -1,6 +1,6 @@
 //
 //  MSAppDelegate.h
-//  MysteryiousSwiss
+//  MysteriousSwiss
 //
 //  Created by Lilia Dassine BELAID on 2014-03-07.
 //  Copyright (c) 2014 Lilia Dassine BELAID. All rights reserved.
@@ -11,6 +11,9 @@
 @interface MSAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
+
+@property (strong, nonatomic) UINavigationController *navigationController;
+
 
 @property (readonly, strong, nonatomic) NSManagedObjectContext *managedObjectContext;
 @property (readonly, strong, nonatomic) NSManagedObjectModel *managedObjectModel;

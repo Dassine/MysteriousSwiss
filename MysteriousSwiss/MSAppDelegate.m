@@ -1,12 +1,13 @@
 //
 //  MSAppDelegate.m
-//  MysteryiousSwiss
+//  MysteriousSwiss
 //
 //  Created by Lilia Dassine BELAID on 2014-03-07.
 //  Copyright (c) 2014 Lilia Dassine BELAID. All rights reserved.
 //
 
 #import "MSAppDelegate.h"
+#import "MSWallViewController.h"
 
 @implementation MSAppDelegate
 
@@ -16,11 +17,20 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+    //Set Main view within Navigation bar programmaticaly
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    // Override point for customization after application launch.
-    self.window.backgroundColor = [UIColor whiteColor];
+    
+    
+    MSWallViewController *wallTableViewController = [[MSWallViewController alloc] init];
+    self.navigationController = [[UINavigationController alloc] initWithRootViewController:wallTableViewController];
+    
+    [self.window setRootViewController:self.navigationController];
+    
+    self.window.backgroundColor = [UIColor clearColor];
     [self.window makeKeyAndVisible];
+    
     return YES;
+
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application
@@ -90,7 +100,7 @@
     if (_managedObjectModel != nil) {
         return _managedObjectModel;
     }
-    NSURL *modelURL = [[NSBundle mainBundle] URLForResource:@"MysteryiousSwiss" withExtension:@"momd"];
+    NSURL *modelURL = [[NSBundle mainBundle] URLForResource:@"MysteriousSwiss" withExtension:@"momd"];
     _managedObjectModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
     return _managedObjectModel;
 }
@@ -103,7 +113,7 @@
         return _persistentStoreCoordinator;
     }
     
-    NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"MysteryiousSwiss.sqlite"];
+    NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"MysteriousSwiss.sqlite"];
     
     NSError *error = nil;
     _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
