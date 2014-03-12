@@ -37,7 +37,7 @@
     
     UIBarButtonItem *backButton = [[UIBarButtonItem alloc] initWithTitle:@"" style:UIBarButtonItemStyleBordered target:self action:nil];
     self.navigationController.navigationBar.topItem.backBarButtonItem=backButton;
-
+    
     
     // Set background color
     [self.view setBackgroundColor:[UIColor whiteColor]];
@@ -61,13 +61,13 @@
     [_statusTextView setBackgroundColor:[UIColor clearColor]];
     [_statusTextView setTextAlignment:NSTextAlignmentLeft];
     [_statusTextView setText:@"Add your status here"];
-//    [_statusTextView.layer setBorderWidth:1.0f];
-//    [_statusTextView.layer setBorderColor:[[UIColor grayColor] CGColor]];
+    //    [_statusTextView.layer setBorderWidth:1.0f];
+    //    [_statusTextView.layer setBorderColor:[[UIColor grayColor] CGColor]];
     [_statusTextView setContentOffset:CGPointMake(0, 0) animated:YES];
     [_statusTextView setDelegate:self];
     [self.view addSubview:_statusTextView];
     
-   
+    
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -85,8 +85,8 @@
 - (void)addStatus:(id)sender
 {
     //save in DB and dismiss
-
-    if (![[MSDBManager getSharedInstance] saveStatusData:_statusUserNameLabel.text statusText:_statusTextView.text statusImage:UIImagePNGRepresentation(selectedImage) statusNbOfComment:@"0"]) {
+    
+    if (![[MSDBManager getSharedInstance] saveStatusData:_statusUserNameLabel.text statusText:_statusTextView.text statusImage:UIImagePNGRepresentation(selectedImage)]) {
         [[[UIAlertView alloc]initWithTitle:@"Data Insertion failed"
                                    message:nil
                                   delegate:nil
@@ -102,9 +102,9 @@
     // add image from galery or take picture
     
     UIActionSheet *popup = [[UIActionSheet alloc] initWithTitle:@"Select Sharing option:" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:
-    @"take picture",
-    @"Add from Gallery",
-    nil];
+                            @"take picture",
+                            @"Add from Gallery",
+                            nil];
     popup.tag = 1;
     [popup showInView:[UIApplication sharedApplication].keyWindow];
 }
@@ -113,7 +113,7 @@
 - (void) keyboardWillShow:(NSNotification *) notification
 {
     
-   keyboardSize  = [[[notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
+    keyboardSize  = [[[notification userInfo] objectForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue].size;
 }
 
 -(void)textViewDidBeginEditing:(UITextView *)textView {

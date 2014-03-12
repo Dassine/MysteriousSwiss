@@ -8,6 +8,7 @@
 
 #import "MSDBManager.h"
 #import "MSStatus.h"
+#import "MSComment.h"
 
 static MSDBManager *sharedInstance = nil;
 static sqlite3 *database = nil;
@@ -36,25 +37,33 @@ static sqlite3_stmt *statement = nil;
     
     // Get the documents directory
     NSArray *dirPaths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-    NSString *docsDir = dirPaths[0];
     
     // Build the path to the database file
-    databasePath = [[NSString alloc] initWithString:[docsDir stringByAppendingPathComponent: @"status.db"]];
+    databasePath = [[NSString alloc] initWithString:[dirPaths[0] stringByAppendingPathComponent: @"status.db"]];
     
     if ([[NSFileManager defaultManager] fileExistsAtPath: databasePath ] == NO)
     {
-        const char *dbpath = [databasePath UTF8String];
-        if (sqlite3_open(dbpath, &database) == SQLITE_OK)
+        if (sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK)
         {
             char *errMsg;
-            const char *sql_stmt =
-            "CREATE TABLE IF NOT EXISTS statusDetail (id TEXT PRIMARY KEY, name TEXT, status TEXT,  imageURL  BLOB, nbComments INTEGER)";
-            if (sqlite3_exec(database, sql_stmt, NULL, NULL, &errMsg) == SQLITE_OK)
-                return YES;
-            else {
+            NSString *createSQL  = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS statusDetail (id INTEGER PRIMARY KEY, name TEXT, status TEXT,  imageURL  BLOB)"];
+            if (sqlite3_exec(database, [createSQL UTF8String], NULL, NULL, &errMsg) == SQLITE_OK) {
+                
+                createSQL = [NSString stringWithFormat:@"CREATE TABLE IF NOT EXISTS commentDetail (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT, comment TEXT, statusId INT, FOREIGN KEY(statusId) REFERENCES statusDetail(id))"];
+                if (sqlite3_exec(database, [createSQL UTF8String], NULL, NULL, &errMsg) == SQLITE_OK)
+                    
+                    return YES;
+                else {
+                    NSLog(@"Failed to create table");
+                    return NO;
+                }
+            } else {
                 NSLog(@"Failed to create table");
                 return NO;
             }
+            
+            // Finalize and close database.
+            sqlite3_finalize(statement);
             sqlite3_close(database);
         }
         else {
@@ -68,28 +77,21 @@ static sqlite3_stmt *statement = nil;
 - (BOOL) saveStatusData:(NSString*)userName
              statusText:(NSString*)text
             statusImage:(NSData*)imageData
-      statusNbOfComment:(NSString*)nbOfComments
 {
-    const char *dbpath = [databasePath UTF8String];
-    if (sqlite3_open(dbpath, &database) == SQLITE_OK)
+    if (sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK)
     {
-        NSString *insertSQL = [NSString stringWithFormat:@"INSERT INTO statusDetail (id, name, status, imageURL, nbComments) VALUES(?, ?, ?, ?, ?)"];
+        NSString *insertSQL = [NSString stringWithFormat:@"INSERT INTO statusDetail (id, name, status, imageURL) VALUES(?, ?, ?, ?)"];
         
         if(sqlite3_prepare_v2(database,[insertSQL UTF8String], -1, &statement, NULL)==SQLITE_OK){
-           
-            
-            sqlite3_bind_text(statement,1, [[self getUUID] UTF8String], -1, SQLITE_TRANSIENT);
-            
+
             sqlite3_bind_text(statement,2,[userName UTF8String], -1, SQLITE_TRANSIENT);
             
             sqlite3_bind_text(statement,3,[text UTF8String], -1, SQLITE_TRANSIENT);
             
             sqlite3_bind_blob(statement, 4, [imageData bytes], [imageData length], NULL);
             
-            sqlite3_bind_int(statement,5,[nbOfComments integerValue]);
-            
-            
             if (sqlite3_step(statement) == SQLITE_DONE) {
+                sqlite3_bind_int64(statement,1, sqlite3_last_insert_rowid(database)); // Set unique ID
                 return YES;
             } else {
                 NSLog( @"Error while inserting '%s'", sqlite3_errmsg(database));
@@ -105,18 +107,43 @@ static sqlite3_stmt *statement = nil;
     return NO;
 }
 
-
-- (NSArray*) findByRegisterNumber:(NSString*)objectID
+- (BOOL) saveCommentOfStatusID:(long long)statusID
+             commentUser:(NSString*)userName
+            commentText:(NSString*)comment
 {
-    const char *dbpath = [databasePath UTF8String];
-    if (sqlite3_open(dbpath, &database) == SQLITE_OK)
+    if (sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK)
+    {
+        NSString *insertSQL = [NSString stringWithFormat:@"INSERT INTO commentDetail (username, comment, statusId) VALUES(\"%@\", \"%@\", \"%lld\")", userName, comment, statusID];
+        
+        if(sqlite3_prepare_v2(database,[insertSQL UTF8String], -1, &statement, NULL)==SQLITE_OK){
+            
+            if ( sqlite3_exec(database, [insertSQL UTF8String], NULL, &statement, NULL) == SQLITE_OK)
+                return YES;
+            else
+            {
+                NSLog( @"Error while inserting '%s'", sqlite3_errmsg(database));
+                return NO;
+            }
+        }
+        
+        // Finalize and close database.
+        sqlite3_finalize(statement);
+        sqlite3_close(database);
+    }
+    return NO;
+}
+
+
+
+- (NSArray*) findByObjectID:(long long)objectID
+{
+    if (sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK)
     {
         NSString *querySQL = [NSString stringWithFormat:
-                              @"SELECT name, status, imageURL, nbComments from statusDetail where id=\"%@\"",objectID];
-        const char *query_stmt = [querySQL UTF8String];
+                              @"SELECT name, status, imageURL from statusDetail WHERE id = %lld",objectID];
+    
         NSMutableArray *resultArray = [[NSMutableArray alloc]init];
-        if (sqlite3_prepare_v2(database,
-                               query_stmt, -1, &statement, NULL) == SQLITE_OK)
+        if (sqlite3_prepare_v2(database, [querySQL UTF8String], -1, &statement, NULL) == SQLITE_OK)
         {
             if (sqlite3_step(statement) == SQLITE_ROW)
             {
@@ -129,10 +156,6 @@ static sqlite3_stmt *statement = nil;
                 NSString *statusImageURL = [[NSString alloc]initWithUTF8String:
                                             (const char *) sqlite3_column_text(statement, 3)];
                 [resultArray addObject:statusImageURL];
-                NSString *statusNbOfComments = [[NSString alloc]initWithUTF8String:
-                                                (const char *) sqlite3_column_text(statement, 4)];
-                [resultArray addObject:statusNbOfComments];
-                return resultArray;
             }
             else{
                 NSLog( @"Failed from sqlite3_prepare_v2. Error is:  %s", sqlite3_errmsg(database));
@@ -153,10 +176,35 @@ static sqlite3_stmt *statement = nil;
     if (sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK)
     {
         NSString *querySQL = [NSString stringWithFormat:
-                              @"DELETE FROM statusDetail WHERE id=\"%@\"",status.objectId];
-        const char *query_stmt = [querySQL UTF8String];
+                              @"DELETE FROM statusDetail WHERE id=\"%lld\"",status.objectId];
         
-        if (sqlite3_prepare_v2(database, query_stmt, -1, &statement, NULL) == SQLITE_OK)
+        if (sqlite3_prepare_v2(database, [querySQL UTF8String], -1, &statement, NULL) == SQLITE_OK)
+        {
+            if (sqlite3_step(statement) == SQLITE_DONE)
+            {
+                return YES;
+            }
+            else{
+                NSLog( @"Failed from sqlite3_prepare_v2. Error is:  %s", sqlite3_errmsg(database));
+                return NO;
+            }
+        }
+        
+        // Finalize and close database.
+        sqlite3_finalize(statement);
+        sqlite3_close(database);
+    }
+    return NO;
+
+}
+- (BOOL)deleteComment:(MSComment*)comment {
+    
+    
+    if (sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK)
+    {
+        NSString *querySQL = [NSString stringWithFormat: @"DELETE FROM commentDetail WHERE id=\"%lld\"",comment.objectId];
+        
+        if (sqlite3_prepare_v2(database, [querySQL UTF8String], -1, &statement, NULL) == SQLITE_OK)
         {
             if (sqlite3_step(statement) == SQLITE_DONE)
             {
@@ -176,17 +224,15 @@ static sqlite3_stmt *statement = nil;
 
 }
 
-- (int)getStatusCount
+- (int)getCommentsCountForStatusID:(long long)statusID
 {
     int count = 0;
     if (sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK)
     {
-        const char* sqlStatement = "SELECT COUNT(*) FROM statusDetail";
-        sqlite3_stmt *statement;
+        NSString *querySQL = [NSString stringWithFormat:@"SELECT COUNT(*) FROM  commentDetail WHERE statusId LIKE %lld", statusID];
         
-        if( sqlite3_prepare_v2(database, sqlStatement, -1, &statement, NULL) == SQLITE_OK )
+        if( sqlite3_prepare_v2(database, [querySQL UTF8String], -1, &statement, NULL) == SQLITE_OK )
         {
-            //Loop through all the returned rows (should be just one)
             while( sqlite3_step(statement) == SQLITE_ROW )
             {
                 count = sqlite3_column_int(statement, 0);
@@ -213,23 +259,19 @@ static sqlite3_stmt *statement = nil;
     {
         NSString *querySQL = [NSString stringWithFormat:@"SELECT * FROM statusDetail"];
         
-        const char *query_stmt = [querySQL UTF8String];
-        
-        if (sqlite3_prepare_v2(database ,query_stmt , -1, &statement, NULL) == SQLITE_OK)
+        if (sqlite3_prepare_v2(database ,[querySQL UTF8String] , -1, &statement, NULL) == SQLITE_OK)
         {
             while (sqlite3_step(statement) == SQLITE_ROW)
             {
                 MSStatus *loadedStatus = [[MSStatus alloc] init];
                 
-                loadedStatus.objectId = [[NSString alloc] initWithUTF8String:(const char *) sqlite3_column_text(statement, 0)];
+                loadedStatus.objectId = sqlite3_column_int64(statement, 0);
                 
                 loadedStatus.statusUserName = [[NSString alloc] initWithUTF8String:(const char *) sqlite3_column_text(statement, 1)];
                 
                 loadedStatus.statusText = [[NSString alloc]initWithUTF8String:(const char *) sqlite3_column_text(statement, 2)];
                 
                 loadedStatus.statusImageURL =  [[NSData alloc] initWithBytes:sqlite3_column_blob(statement, 3) length: sqlite3_column_bytes(statement, 3)];
-                
-                loadedStatus.statusNbOfComments = sqlite3_column_int(statement, 4);
                 
                 [statusArray addObject:loadedStatus];
             }
@@ -239,6 +281,42 @@ static sqlite3_stmt *statement = nil;
         sqlite3_finalize(statement);
         sqlite3_close(database);
     }
+    
     return statusArray;
 }
+
+- (NSMutableArray*)fetchAllCommentsForStatusID:(long long)statusID {
+    
+    NSMutableArray *statusArray = [[NSMutableArray alloc] init];
+    
+    if (sqlite3_open([databasePath UTF8String], &database) == SQLITE_OK)
+    {
+        NSString *querySQL = [NSString stringWithFormat:@"SELECT * FROM commentDetail WHERE statusId = \"%lld\"", statusID];
+        
+        if (sqlite3_prepare_v2(database ,[querySQL UTF8String] , -1, &statement, NULL) == SQLITE_OK)
+        {
+            while (sqlite3_step(statement) == SQLITE_ROW)
+            {
+                MSComment *loadedComment = [[MSComment alloc] init];
+                loadedComment.objectId = sqlite3_column_int64(statement, 0);
+                
+                loadedComment.commentUser = [[NSString alloc] initWithUTF8String:(const char *) sqlite3_column_text(statement, 1)];
+                
+                loadedComment.commentText = [[NSString alloc]initWithUTF8String:(const char *) sqlite3_column_text(statement, 2)];
+                
+                loadedComment.statusID =  sqlite3_column_int64(statement, 3);
+                
+                [statusArray addObject:loadedComment];
+            }
+        }
+        
+        // Finalize and close database.
+        sqlite3_finalize(statement);
+        sqlite3_close(database);
+    }
+    
+    return statusArray;
+}
+
+
 @end

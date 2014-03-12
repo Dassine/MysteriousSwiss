@@ -8,9 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
-@interface MSStatusDetailViewController : UIViewController
+@class MSStatus;
 
+@interface MSStatusDetailViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 
+@property (nonatomic, strong) MSStatus *selectedStatus;
 @property (nonatomic, strong) UIImageView *statusImageView;
 @property (nonatomic, strong) UILabel *statusUserNameLabel;
 @property (nonatomic, strong) UITextView *statusTextView;

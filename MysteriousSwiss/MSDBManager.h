@@ -10,6 +10,7 @@
 #import <sqlite3.h>
 
 @class MSStatus;
+@class MSComment;
 
 @interface MSDBManager : NSObject
 {
@@ -21,11 +22,19 @@
 - (BOOL)createDB;
 - (BOOL)saveStatusData:(NSString*)userName
             statusText:(NSString*)text
-           statusImage:(NSData*)imageData
-     statusNbOfComment:(NSString*)nbOfComments;;
-- (NSArray*)findByRegisterNumber:(NSString*)registerNumber;
-- (int)getStatusCount;
+           statusImage:(NSData*)imageData;
 - (NSMutableArray*)fetchAllStatus;
 - (BOOL)deleteStatus:(MSStatus*)status;
+
+- (BOOL) saveCommentOfStatusID:(long long)statusID
+                   commentUser:(NSString*)userName
+                   commentText:(NSString*)comment;
+- (NSMutableArray*)fetchAllCommentsForStatusID:(long long)statusID;
+- (BOOL)deleteComment:(MSComment*)comment;
+
+
+- (NSArray*)findByObjectID:(long long)objectID;
+- (int)getCommentsCountForStatusID:(long long)statusID;
+
 
 @end

@@ -13,6 +13,5 @@
 @property (nonatomic, strong) UIButton *statusAddImageButton;
 @property (nonatomic, strong) UILabel *statusUserNameLabel;
 @property (nonatomic, strong) UITextView *statusTextView;
-@property (nonatomic, strong) UITableView *commentsTableView;
 
 @end

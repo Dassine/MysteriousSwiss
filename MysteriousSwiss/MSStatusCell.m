@@ -18,6 +18,7 @@
         
         _statusImage = [[UIImageView alloc] init];
         [_statusImage setFrame:CGRectMake(0, 0, 90, 90)];
+        [_statusImage setImage:[UIImage imageNamed:[NSString stringWithFormat:@"NoImage"]]];
         [self.contentView addSubview:_statusImage];
         
         _userLabel = [[UILabel alloc] initWithFrame:CGRectMake(95, 0, CGRectGetWidth(self.frame)-95, 18)];
@@ -44,7 +45,6 @@
         [_nbOfCommentsLabel setLineBreakMode:NSLineBreakByWordWrapping];
         [_nbOfCommentsLabel setNumberOfLines:0];
         [_nbOfCommentsLabel setTextColor:[UIColor grayColor]];
-        [_nbOfCommentsLabel setText:[NSString stringWithFormat:@"number of comments %i",_nbOfComment]];
         [self.contentView addSubview:_nbOfCommentsLabel];
     }
     return self;

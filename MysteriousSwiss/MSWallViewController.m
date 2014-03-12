@@ -11,6 +11,7 @@
 #import "MSStatusCell.h"
 #import "MSAddStatusViewController.h"
 #import "MSStatus.h"
+#import "MSStatusDetailViewController.h"
 
 
 static NSString *CellIdentifier = @"StatusCellIdentifier";
@@ -116,13 +117,13 @@ static NSString *CellIdentifier = @"StatusCellIdentifier";
     MSStatus *status = [_status objectAtIndex:indexPath.row];
     
     // Set Image Status
-    [cell.statusImage setImage:[UIImage imageWithData:status.statusImageURL]];
+    [cell.statusImage setImage:([status.statusImageURL length] > 0) ? [UIImage imageWithData:status.statusImageURL] : [UIImage imageNamed:[NSString stringWithFormat:@"NoImage"]]];
     
     // Set Text Status
     [cell.statusText setText:status.statusText];
     
     // Set number of comments
-    [cell setNbOfComment:status.statusNbOfComments];
+     [cell.nbOfCommentsLabel setText:[NSString stringWithFormat:@"number of comments %i", [[MSDBManager getSharedInstance] getCommentsCountForStatusID:status.objectId]]];
     
     [cell setNeedsUpdateConstraints];
     [cell updateConstraintsIfNeeded];
@@ -131,8 +132,13 @@ static NSString *CellIdentifier = @"StatusCellIdentifier";
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-
-    [[MSDBManager getSharedInstance] fetchAllStatus];
+    
+    MSStatus *status = [_status objectAtIndex:indexPath.row];
+    
+    MSStatusDetailViewController *statusDetailViewController= [[MSStatusDetailViewController alloc] init];
+    statusDetailViewController.selectedStatus = status;
+    
+    [self.navigationController pushViewController:statusDetailViewController animated:YES];
 }
 
 // Override to support editing the table view.

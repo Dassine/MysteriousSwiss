@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>EBBD536A-DA29-443A-BE62-5FF9A9A4E583</string>
+	<key>IDESourceControlProjectName</key>
+	<string>MysteriousSwiss</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>E3F668F3-5365-4D27-9882-EFA487653762</key>
+		<string>https://github.com/Dassine/MysteriousSwiss.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>MysteriousSwiss.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>E3F668F3-5365-4D27-9882-EFA487653762</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/Dassine/MysteriousSwiss.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>E3F668F3-5365-4D27-9882-EFA487653762</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>E3F668F3-5365-4D27-9882-EFA487653762</string>
+			<key>IDESourceControlWCCName</key>
+			<string>MysteriousSwiss</string>
+		</dict>
+	</array>
+</dict>
+</plist>

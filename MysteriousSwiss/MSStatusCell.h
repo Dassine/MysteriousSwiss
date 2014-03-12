@@ -15,6 +15,5 @@
 @property (nonatomic, strong) UITextView *statusText;
 
 @property (nonatomic, strong) UILabel *nbOfCommentsLabel;
-@property (nonatomic) NSInteger nbOfComment;
 
 @end

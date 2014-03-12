@@ -10,10 +10,9 @@
 
 @interface MSStatus : NSObject
 
-@property (nonatomic, copy) NSString *objectId;
+@property (nonatomic) long long objectId;
 @property (nonatomic, copy) NSString *statusUserName;
 @property (nonatomic, copy) NSData *statusImageURL;
 @property (nonatomic, copy) NSString *statusText;
-@property (nonatomic) NSInteger statusNbOfComments;
 
 @end
